@@ -1,0 +1,37 @@
+---
+description: Core coding standards — DRY, single source of truth, project conventions
+alwaysApply: true
+---
+
+# Project coding standards
+
+Follow these When unsure, prefer existing patterns over new ones.
+
+## When the user asks for something
+- Scan the codebase and build a mental map of structure, key components, and patterns.
+- Implement or suggest code that matches existing conventions (API routes, UI, lib usage). If unsure, ask or summarize before proceeding.
+- Keep a very short log of steps; at the top, briefly state the goal so context is clear.
+- Think step by step. Do not run `npm run dev` or `npm run build` unless the user explicitly asks you to.
+- Act as an expert: concise, precise, and aligned with the project's single-source-of-truth and DRY conventions.
+
+## Single source of truth
+
+## No duplicated logic
+- Reuse existing helpers and libs. If you need a pattern that already exists (auth, ID parsing, formatting), use it; do not reimplement.
+- Extract shared logic into `lib/` or a small helper; keep API routes and components thin.
+
+## Structure and style
+- **API routes:** 
+- **UI:** Keep components focused; extract hooks for reusable logic.
+- **Conventions:** Match existing patterns in the same area (e.g. modal structure, table rows, API response shapes).
+
+## Keep docs in sync (global)
+When you change code in a way that affects what the docs say, update the docs in the same change set. This applies to:
+- **`.cursor/rules/*.mdc`** — If the code no longer matches what a rule says (e.g. "use X" but X was renamed or replaced with Y), update the rule to say Y.
+- **`README.md`** — If structure, lib locations, or "Where to look" become wrong, update README to match.
+
+Do not leave docs stating "use X" or "see path X" when the codebase now uses or provides Y or a different path. Update the doc to reflect the current code.
+
+## Before implementing
+- Scan the codebase for the relevant area (see README "Where to look").
+- Prefer extending existing modules over one-off code. If adding a new convention, document it in `code-conventions/` and reference it here.
