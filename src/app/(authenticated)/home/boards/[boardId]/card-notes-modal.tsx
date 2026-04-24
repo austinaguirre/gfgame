@@ -11,6 +11,8 @@ import { Dialog } from "@/components/dialog";
 import { IconPencil, IconSendUp, IconTrash } from "@/components/icons";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
+const NOTE_TEXTAREA_MAX_PX = 280;
+
 function formatWhen(iso: string) {
   try {
     return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
@@ -47,6 +49,8 @@ export function CardNotesModal({
   const [editDraft, setEditDraft] = useState("");
   const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
   const notesScrollRef = useRef<HTMLDivElement>(null);
+  const noteDraftRef = useRef<HTMLTextAreaElement>(null);
+  const editDraftRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -57,6 +61,24 @@ export function CardNotesModal({
     }
   }, [open, card?.id]);
 
+  useLayoutEffect(() => {
+    const el = noteDraftRef.current;
+    if (!el) return;
+    el.style.height = "0px";
+    const next = Math.min(el.scrollHeight, NOTE_TEXTAREA_MAX_PX);
+    el.style.height = `${next}px`;
+    el.style.overflowY = el.scrollHeight > next ? "auto" : "hidden";
+  }, [noteDraft]);
+
+  useLayoutEffect(() => {
+    const el = editDraftRef.current;
+    if (!el) return;
+    el.style.height = "0px";
+    const next = Math.min(el.scrollHeight, NOTE_TEXTAREA_MAX_PX);
+    el.style.height = `${next}px`;
+    el.style.overflowY = el.scrollHeight > next ? "auto" : "hidden";
+  }, [editDraft, editingId]);
+
   /** Open scrolled to bottom (newest); same after sending a note. */
   useLayoutEffect(() => {
     if (!open || !card) return;
@@ -66,8 +88,8 @@ export function CardNotesModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: scroll on card id / note count, not full card object
   }, [open, card?.id, card?.notes.length]);
 
-  async function addNote(e: React.FormEvent) {
-    e.preventDefault();
+  async function addNote(e?: { preventDefault?: () => void }) {
+    e?.preventDefault?.();
     if (!card) return;
     const t = noteDraft.trim();
     if (!t) return;
@@ -147,13 +169,20 @@ export function CardNotesModal({
         title={card.title}
         maxWidthClassName="max-w-4xl"
         footer={
-          <form onSubmit={(e) => void addNote(e)} className="flex gap-2">
-            <input
-              type="text"
+          <form onSubmit={(e) => void addNote(e)} className="flex items-end gap-2">
+            <textarea
+              ref={noteDraftRef}
               value={noteDraft}
               onChange={(e) => setNoteDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  void addNote(e);
+                }
+              }}
               placeholder="Write a note…"
-              className="accent-focus flex-1 rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-sm dark:border-zinc-600 dark:bg-zinc-950"
+              className="accent-focus flex-1 resize-none rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-sm leading-5 dark:border-zinc-600 dark:bg-zinc-950"
+              rows={1}
               maxLength={4000}
               disabled={busy}
             />
@@ -193,10 +222,11 @@ export function CardNotesModal({
                   {editingId === n.id && mine ? (
                     <div className="space-y-2">
                       <textarea
+                        ref={editDraftRef}
                         value={editDraft}
                         onChange={(e) => setEditDraft(e.target.value)}
                         className="accent-focus w-full rounded-lg border border-zinc-300 bg-white/80 px-2 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-950"
-                        rows={4}
+                        rows={6}
                         disabled={busy}
                       />
                       <div className="flex justify-end gap-2">
